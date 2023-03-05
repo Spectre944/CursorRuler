@@ -6,14 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1113</width>
-    <height>579</height>
+    <width>926</width>
+    <height>670</height>
    </rect>
   </property>
   <property name="font">
-   <font>
-    <family>Consolas</family>
-   </font>
+   <font/>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -30,7 +28,6 @@
      <widget class="QFrame" name="appFrame">
       <property name="font">
        <font>
-        <family>Consolas</family>
         <pointsize>20</pointsize>
        </font>
       </property>
@@ -98,7 +95,6 @@
               </property>
               <property name="font">
                <font>
-                <family>Consolas</family>
                 <pointsize>20</pointsize>
                </font>
               </property>
@@ -116,11 +112,43 @@
               </property>
              </widget>
             </item>
-            <item row="7" column="0">
+            <item row="3" column="1">
+             <widget class="QCheckBox" name="checkBoxST_VerticalShoot">
+              <property name="text">
+               <string>Vertical shooting</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QSpinBox" name="spinBoxST_StartSpeed">
+              <property name="maximum">
+               <number>10000</number>
+              </property>
+              <property name="value">
+               <number>200</number>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="1">
+             <spacer name="verticalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Preferred</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="10" column="0">
              <spacer name="horizontalSpacer_3">
               <property name="font">
                <font>
-                <family>Consolas</family>
                 <pointsize>20</pointsize>
                </font>
               </property>
@@ -138,28 +166,10 @@
               </property>
              </spacer>
             </item>
-            <item row="6" column="1" colspan="2">
-             <widget class="QLabel" name="label_12">
+            <item row="5" column="1">
+             <widget class="QLabel" name="label_14">
               <property name="text">
-               <string>Ctrl + RMB - Set Scale points
-Alt + RMB - Set Target points
-Ctrl + Z - Clear Scale points
-Ctrl + X - Clear Target Points
-Alt + R - Hide/Show Settings
-Alt + E - Hide/Show programm</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QLabel" name="label_9">
-              <property name="font">
-               <font>
-                <family>Consolas</family>
-                <pointsize>20</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Start speed, m/s</string>
+               <string>Projectile mass, kg</string>
               </property>
              </widget>
             </item>
@@ -167,7 +177,6 @@ Alt + E - Hide/Show programm</string>
              <widget class="QLabel" name="label_2">
               <property name="font">
                <font>
-                <family>Consolas</family>
                 <pointsize>20</pointsize>
                </font>
               </property>
@@ -176,34 +185,10 @@ Alt + E - Hide/Show programm</string>
               </property>
              </widget>
             </item>
-            <item row="5" column="0" colspan="2">
-             <widget class="QLabel" name="label_10">
-              <property name="text">
-               <string>Hint:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <spacer name="verticalSpacer_3">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Preferred</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="7" column="2">
+            <item row="10" column="2">
              <spacer name="horizontalSpacer_4">
               <property name="font">
                <font>
-                <family>Consolas</family>
                 <pointsize>20</pointsize>
                </font>
               </property>
@@ -221,11 +206,10 @@ Alt + E - Hide/Show programm</string>
               </property>
              </spacer>
             </item>
-            <item row="7" column="1">
+            <item row="10" column="1">
              <spacer name="verticalSpacer">
               <property name="font">
                <font>
-                <family>Consolas</family>
                 <pointsize>20</pointsize>
                </font>
               </property>
@@ -240,13 +224,22 @@ Alt + E - Hide/Show programm</string>
               </property>
              </spacer>
             </item>
-            <item row="2" column="2">
-             <widget class="QSpinBox" name="spinBoxST_StartSpeed">
-              <property name="maximum">
-               <number>10000</number>
+            <item row="2" column="1">
+             <widget class="QLabel" name="label_9">
+              <property name="font">
+               <font>
+                <pointsize>20</pointsize>
+               </font>
               </property>
-              <property name="value">
-               <number>200</number>
+              <property name="text">
+               <string>Start speed, m/s</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0" colspan="2">
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>Hint:</string>
               </property>
              </widget>
             </item>
@@ -254,7 +247,6 @@ Alt + E - Hide/Show programm</string>
              <widget class="QLabel" name="label">
               <property name="font">
                <font>
-                <family>Consolas</family>
                 <pointsize>20</pointsize>
                </font>
               </property>
@@ -263,10 +255,46 @@ Alt + E - Hide/Show programm</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
-             <widget class="QCheckBox" name="checkBoxST_VerticalShoot">
+            <item row="4" column="1">
+             <widget class="QCheckBox" name="checkBoxST_ComplexCalculations">
               <property name="text">
-               <string>Vertical shooting</string>
+               <string>Complex calculationn</string>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="1" colspan="2">
+             <widget class="QLabel" name="label_12">
+              <property name="text">
+               <string>Ctrl + RMB - Set Scale points
+Alt + RMB - Set Target points
+Ctrl + Z - Clear Scale points
+Ctrl + X - Clear Target Points
+Alt + R - Hide/Show Settings
+Alt + E - Hide/Show programm</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QLabel" name="label_15">
+              <property name="text">
+               <string>Projectile caliber, mm</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="2">
+             <widget class="QSpinBox" name="spinBoxST_ProjectileCaliber">
+              <property name="maximum">
+               <number>500</number>
+              </property>
+              <property name="value">
+               <number>150</number>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="2">
+             <widget class="QSpinBox" name="spinBoxST_ProjectileMass">
+              <property name="value">
+               <number>18</number>
               </property>
              </widget>
             </item>
@@ -287,7 +315,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="label_5">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
             </font>
            </property>
@@ -300,7 +327,6 @@ Alt + E - Hide/Show programm</string>
           <spacer name="horizontalSpacer">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
             </font>
            </property>
@@ -322,7 +348,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="label_3">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
             </font>
            </property>
@@ -335,7 +360,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="labelCL_Distance">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
              <bold>true</bold>
             </font>
@@ -349,7 +373,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="label_8">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
             </font>
            </property>
@@ -362,7 +385,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="labelCL_Azimut">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
              <bold>true</bold>
             </font>
@@ -376,7 +398,6 @@ Alt + E - Hide/Show programm</string>
           <spacer name="horizontalSpacer_2">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
             </font>
            </property>
@@ -398,7 +419,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="labelCL_Time">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
              <bold>true</bold>
             </font>
@@ -412,7 +432,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="labelCL_P2">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
              <bold>true</bold>
             </font>
@@ -426,7 +445,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="label_4">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
             </font>
            </property>
@@ -439,7 +457,6 @@ Alt + E - Hide/Show programm</string>
           <spacer name="verticalSpacer_2">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
             </font>
            </property>
@@ -458,7 +475,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="label_6">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
             </font>
            </property>
@@ -471,7 +487,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="label_7">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
             </font>
            </property>
@@ -484,7 +499,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="labelCL_P1">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
              <bold>true</bold>
             </font>
@@ -511,7 +525,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="labelCL_Scale">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
              <bold>true</bold>
             </font>
@@ -525,7 +538,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="label_11">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
             </font>
            </property>
@@ -545,7 +557,6 @@ Alt + E - Hide/Show programm</string>
           <widget class="QLabel" name="labelCL_Angle">
            <property name="font">
             <font>
-             <family>Consolas</family>
              <pointsize>20</pointsize>
              <bold>true</bold>
             </font>

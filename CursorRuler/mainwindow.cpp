@@ -12,7 +12,7 @@ LRESULT CALLBACK LowLevelKeyboardMouseProc(int nCode, WPARAM wParam, LPARAM lPar
     DWORD ALT_key=0;
 
 
-    if  ((nCode == HC_ACTION) &&   ((wParam == WM_SYSKEYDOWN) ||  (wParam == WM_KEYDOWN) || (wParam == WM_RBUTTONDOWN)))
+    if  ((nCode == HC_ACTION) &&   ((wParam == WM_SYSKEYDOWN) ||  (wParam == WM_KEYDOWN) || (wParam == WM_RBUTTONDOWN) || (wParam == WM_LBUTTONDOWN)))
     {
         KBDLLHOOKSTRUCT hooked_key =    *((KBDLLHOOKSTRUCT*)lParam);
         DWORD dwMsg = 1;
@@ -27,7 +27,7 @@ LRESULT CALLBACK LowLevelKeyboardMouseProc(int nCode, WPARAM wParam, LPARAM lPar
         ALT_key = GetAsyncKeyState(VK_MENU);
 
         //qDebug() << wParam;
-        qDebug() << key;
+        //qDebug() << key;
 
         //if (key >= 'A' && key <= 'Z')
         //{
@@ -81,6 +81,14 @@ LRESULT CALLBACK LowLevelKeyboardMouseProc(int nCode, WPARAM wParam, LPARAM lPar
         {
             //set coordintats PV1 PV2  // First click P1, Second P2
             mwReference->mainHandler(4);
+            ALT_key = 0;
+        }
+
+
+        if (ALT_key != 0 && wParam == WM_LBUTTONDOWN )
+        {
+            //draw trajectory on the screen
+            mwReference->drawTrajectory();
             ALT_key = 0;
         }
 
@@ -190,16 +198,17 @@ MainWindow::MainWindow(QWidget *parent)
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowState(Qt::WindowFullScreen);
 
+    animationTimer = new QTimer(this);
+    animationTimer->setInterval(100);
 
-    projPainter = new QPainter(this);
-    projPen = new QPen(Qt::green);
-    projPen->setWidth(3);
+    connect(animationTimer, &QTimer::timeout, this, &MainWindow::drawTrajectory);
 
-    animation = new QPropertyAnimation(this, "endPoint");
-    animation->setStartValue(QPointF(50,50));
-    animation->setEndValue(QPointF(200,200));
-    animation->setDuration(1000);
-    animation->start();
+    //hide elements
+    ui->label_15->hide();
+    ui->label_14->hide();
+
+    ui->spinBoxST_ProjectileMass->hide();
+    ui->spinBoxST_ProjectileCaliber->hide();
 
     //tray action, quit from programm
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
@@ -361,32 +370,133 @@ void MainWindow::calculateProjectile()
     static const double g = 9.81;
     static const double RAD2DEG = 57.2957795130823209;
     const double pi = 3.14159;
-    if(ui->checkBoxST_VerticalShoot->isChecked()){
+
+    const double Diameter = ui->spinBoxST_ProjectileCaliber->value()/1000.0;
+    const double dt = 0.1;
+    const double Projectile_mass = ui->spinBoxST_ProjectileMass->value();
+
+    const double k = 0.01; // air resistance coefficient
+    const double rho = 1.2; // air density
+    const double Cd = 0.47; // drag coefficient
+    const double A = pi * (Diameter/2) * (Diameter/2); // cross-sectional area of projectile
+
+    if(ui->checkBoxST_ComplexCalculations->isChecked()){
 
         Oangle = asin((Ddistance * g) / (Vspeed * Vspeed))/2;
 
-        Tfly = (2 * Vspeed * cos(Oangle))/g;
+        double x = 0; // horizontal distance
+        double y = 0; // vertical distance
+        double t = 0; // time
 
-        OangleVertDeg = pi/2 - Oangle;
+        double v_x = Vspeed * cos(Oangle);
+        double v_y = Vspeed * sin(Oangle);
 
-        ui->labelCL_Time->setText(QString::number(Tfly, 'f', 2) + " s");
-        ui->labelCL_Angle->setText(QString::number((90 - (sin(Oangle) * RAD2DEG)), 'f', 2) + " °");
+        double v = sqrt(v_x * v_x + v_y * v_y);
+        double Fx = -0.5 * rho * v * v * Cd * A * v_x / v;
+        double Fy = -0.5 * rho * v * v * Cd * A * v_y / v;
+
+        double ax = Fx / Projectile_mass;
+        double ay = -g + Fy / Projectile_mass;
+
+//        qDebug() << "v:" << v;
+//        qDebug() << "ax:" << ax << " ay:" << ay << " t:" << t ;
+//        qDebug() << "vx:" << v_x << " vy:" << v_y << " v:" << v ;
+//        qDebug() << "Fx:" << Fx << " Fy:" << Fy << " t:" << t ;
+
+      while (x <= Ddistance && y >= 0 ) {
+
+            v = sqrt(v_x * v_x + v_y * v_y);
+            Fx = -0.5 * rho * v * v * Cd * A * v_x / v;
+            Fy = -0.5 * rho * v * v * Cd * A * v_y / v;
+            ax = Fx / Projectile_mass;
+            ay = -g + Fy / Projectile_mass;
+            x += v_x * dt;
+            y += v_y * dt;
+            v_x += ax * dt;
+            v_y += ay * dt;
+            t += dt;
+
+            if(t > 300)
+                break;
+
+        }
+
+        qDebug() << "ax:" << ax << " ay:" << ay << " t:" << t ;
+        qDebug() << "vx:" << v_x << " vy:" << v_y << " v:" << v ;
+        qDebug() << "x:" << x << " y:" << y << " t:" << t ;
+
+        ui->labelCL_Time->setText(QString::number(t, 'f', 2) + " s");
+        ui->labelCL_Angle->setText(QString::number(sin(Oangle) * RAD2DEG, 'f', 2) + " °");
 
     }
     else{
 
-        Oangle = asin((Ddistance * g) / (Vspeed * Vspeed))/2;
+        if(ui->checkBoxST_VerticalShoot->isChecked()){
 
-        Tfly = (2 * Vspeed * sin(Oangle))/g;
+            Oangle = asin((Ddistance * g) / (Vspeed * Vspeed))/2;
 
-        ui->labelCL_Time->setText(QString::number(Tfly, 'f', 2) + " s");
-        ui->labelCL_Angle->setText(QString::number(sin(Oangle) * RAD2DEG, 'f', 2) + " °");
+            Tfly = (2 * Vspeed * cos(Oangle))/g;
+
+            OangleVertDeg = pi/2 - Oangle;
+
+            ui->labelCL_Time->setText(QString::number(Tfly, 'f', 2) + " s");
+            ui->labelCL_Angle->setText(QString::number((90 - (sin(Oangle) * RAD2DEG)), 'f', 2) + " °");
+
+        }
+        else{
+
+            Oangle = asin((Ddistance * g) / (Vspeed * Vspeed))/2;
+
+            Tfly = (2 * Vspeed * sin(Oangle))/g;
+
+            ui->labelCL_Time->setText(QString::number(Tfly, 'f', 2) + " s");
+            ui->labelCL_Angle->setText(QString::number(sin(Oangle) * RAD2DEG, 'f', 2) + " °");
+        }
+
     }
-
 
 
     qDebug() << Oangle;
     qDebug() << Tfly;
+}
+
+void MainWindow::drawTrajectory()
+{
+
+    static double t;
+    double dt = 0.1;
+    const double N = Tfly / dt; // Total number of steps
+    const double dx = static_cast<double>(p1.x - p2.x) / N;
+    const double dy = static_cast<double>(p1.y - p2.y) / N;
+
+    qDebug() << "dx" << dx << " dy" << dy;
+
+    if(t <= 0){
+
+         qDebug() << "Timer started";
+        animationTimer->start();
+
+        pd2 = p2; // position of shell x
+        pd1 = p1;
+
+
+    }
+
+    pd2.x += static_cast<int>(dx);
+    pd2.y += static_cast<int>(dy);
+
+    //pd2 = QPoint(pd2.x + dx * cos(Oangle), pd2.y + dy * cos(Oangle));
+
+    t += dt;
+
+    repaint();
+
+    if(t > Tfly){
+        animationTimer->stop();
+        t = 0;
+        pd2 = QPoint(0,0);
+    }
+
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -435,6 +545,10 @@ void MainWindow::paintEvent(QPaintEvent *event)
     pen.setColor(Qt::green);
     painter.setPen(pen);
     painter.drawPath(pathPS);
+
+    pen.setStyle(Qt::SolidLine);
+    painter.setPen(pen);
+    painter.drawEllipse(pd2.x, pd2.y, 5, 5);
 
     painter.drawPath(pathPV);
 }
@@ -495,4 +609,23 @@ void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
+
+
+void MainWindow::on_checkBoxST_ComplexCalculations_clicked()
+{
+    if(ui->checkBoxST_ComplexCalculations->isChecked()){
+        ui->label_15->show();
+        ui->label_14->show();
+
+        ui->spinBoxST_ProjectileMass->show();
+        ui->spinBoxST_ProjectileCaliber->show();
+    }
+    else{
+        ui->label_15->hide();
+        ui->label_14->hide();
+
+        ui->spinBoxST_ProjectileMass->hide();
+        ui->spinBoxST_ProjectileCaliber->hide();
+    }
+}
 

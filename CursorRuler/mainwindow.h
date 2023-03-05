@@ -14,6 +14,7 @@
 #include <QLockFile>
 #include <QDir>
 #include <QMessageBox>
+#include <QTimer>
 #include <QDebug>
 
 #include <iostream>
@@ -75,7 +76,8 @@ public:
     // p1, p2 - click points for distance
     // and ps1, ps2 - points for scale
     // pv1, pv2 point for transportier (vertical shooting)
-    Point p1, p2, ps1, ps2, pv1, pv2;
+    // pd1, pd2 drawing point of projectile
+    Point p1, p2, ps1, ps2, pv1, pv2, pd1, pd2;
     double scale = 0;
     double Vspeed, Oangle, OangleVertDeg, Ddistance, Tfly;
 
@@ -89,6 +91,8 @@ private slots:
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
 
 
+    void on_checkBoxST_ComplexCalculations_clicked();
+
 private:
     Ui::MainWindow *ui;
     QSystemTrayIcon *trayIcon;
@@ -96,11 +100,8 @@ private:
     QMenu *trayIconMenu;
     QAction *quitAction;
     QScreen *screen0;
-    QPainter *projPainter;
-    QPen *projPen;
-    QPropertyAnimation *animation;
-    //For tracking mouse coordinates
-    //QPoint *m_startPoint = new QPoint;
+    QTimer *animationTimer;
+
 
 
     HHOOK hhkLowLevelKybd;
