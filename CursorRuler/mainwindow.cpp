@@ -12,7 +12,7 @@ LRESULT CALLBACK LowLevelKeyboardMouseProc(int nCode, WPARAM wParam, LPARAM lPar
     DWORD ALT_key=0;
 
 
-    if  ((nCode == HC_ACTION) &&   ((wParam == WM_SYSKEYDOWN) ||  (wParam == WM_KEYDOWN) || (wParam == WM_RBUTTONDOWN)))
+    if  ((nCode == HC_ACTION) &&   ((wParam == WM_SYSKEYDOWN) ||  (wParam == WM_KEYDOWN) || (wParam == WM_RBUTTONDOWN) || (wParam == WM_LBUTTONDOWN)))
     {
         KBDLLHOOKSTRUCT hooked_key =    *((KBDLLHOOKSTRUCT*)lParam);
         DWORD dwMsg = 1;
@@ -26,29 +26,28 @@ LRESULT CALLBACK LowLevelKeyboardMouseProc(int nCode, WPARAM wParam, LPARAM lPar
         CTRL_key = GetAsyncKeyState(VK_CONTROL);
         ALT_key = GetAsyncKeyState(VK_MENU);
 
-        //qDebug() << wParam;
+        /*
+        qDebug() << wParam;
         qDebug() << key;
-
-        //if (key >= 'A' && key <= 'Z')
-        //{
+        */
 
         if  (GetAsyncKeyState(VK_SHIFT)>= 0) key +=32;
 
         /*********************************************
-             ***   Hotkey scope                         ***
-             ***   do stuff here                        ***
-             **********************************************/
+         ***   Hotkey scope                         ***
+         ***   do stuff here                        ***
+         **********************************************/
 
         if (CTRL_key !=0 && key == 'x' )
         {
-            //clear P1 P2 line
+            //clear Point1 Point2 line
             mwReference->mainHandler(0);
             CTRL_key=0;
 
         }
         if (CTRL_key !=0 && key == 'z' )
         {
-            //clear PS1 PS2 line
+            //clear PointScale1 PointScale2 line
             mwReference->mainHandler(1);
             CTRL_key=0;
 
@@ -56,7 +55,7 @@ LRESULT CALLBACK LowLevelKeyboardMouseProc(int nCode, WPARAM wParam, LPARAM lPar
 
         if (CTRL_key !=0 && key == 'z' )
         {
-            //clear PS1 PS2 line
+            //clear PointScale1 PointScale2 line
             mwReference->mainHandler(1);
             CTRL_key=0;
 
@@ -64,24 +63,31 @@ LRESULT CALLBACK LowLevelKeyboardMouseProc(int nCode, WPARAM wParam, LPARAM lPar
 
         if (ALT_key != 0 && wParam == WM_RBUTTONDOWN )
         {
-            //set coordintats P1 P2  // First click P1, Second P2
+            //set coordintats Point1 Point2  // First click Point1, Second Point2
             mwReference->mainHandler(2);
             ALT_key = 0;
         }
 
         if (CTRL_key != 0 && wParam == WM_RBUTTONDOWN )
         {
-            //set coordintats PS1 PS2  // First click P1, Second P2
+            //set coordintats PointScale1 PointScale2  // First click Point1, Second Point2
             mwReference->mainHandler(3);
             CTRL_key = 0;
         }
 
 
-        if (ALT_key != 0 && key == 'f' )
+        if (ALT_key != 0 && key == 'q' )
         {
-            //set coordintats PV1 PV2  // First click P1, Second P2
+            //set coordintats PointVerticalGrid1 PointVerticalGrid2  // First click Point1, Second Point2
             mwReference->mainHandler(4);
             ALT_key = 0;
+        }
+
+
+        if (wParam == WM_LBUTTONDOWN )
+        {
+            //draw trajectory on the screen
+            mwReference->drawTrajectory();
         }
 
 
@@ -95,43 +101,8 @@ LRESULT CALLBACK LowLevelKeyboardMouseProc(int nCode, WPARAM wParam, LPARAM lPar
     }
     return CallNextHookEx(NULL,    nCode,wParam,lParam);
 
-
-    /*
-    if (nCode == HC_ACTION)
-    {
-        switch (wParam)
-        {
-            // Pass KeyDown/KeyUp messages for Qt class to logicize
-            case WM_KEYDOWN:
-                mwReference->keyDown(PKBDLLHOOKSTRUCT(lParam)->vkCode);
-            break;
-            case WM_KEYUP:
-                mwReference->keyUp(PKBDLLHOOKSTRUCT(lParam)->vkCode);
-            break;
-
-            case WM_LBUTTONDOWN:
-                qDebug() << "Left click"; // Left click
-            break;
-
-
-        }
-    }
-    return CallNextHookEx(NULL, nCode, wParam, lParam);
-
-    */
 }
 
-//Mouse hook
-
-/*
-LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
-    switch( wParam )
-    {
-    case WM_LBUTTONDOWN:  qDebug() << "Left click"; // Left click
-    }
-    return CallNextHookEx(NULL, nCode, wParam, lParam);
-}
-*/
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -180,8 +151,6 @@ MainWindow::MainWindow(QWidget *parent)
         ui->centralwidget->setStyleSheet(styleSheet);
     }
 
-
-
     //Open application with full screen and transparent background
     Qt::WindowFlags flags;
     flags |= Qt::FramelessWindowHint;
@@ -190,32 +159,33 @@ MainWindow::MainWindow(QWidget *parent)
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowState(Qt::WindowFullScreen);
 
+    animationTimer = new QTimer(this);
+    animationTimer->setInterval(ANIM_TIMEOUT);
 
-    projPainter = new QPainter(this);
-    projPen = new QPen(Qt::green);
-    projPen->setWidth(3);
+    connect(animationTimer, &QTimer::timeout, this, &MainWindow::drawTrajectory);
 
-    animation = new QPropertyAnimation(this, "endPoint");
-    animation->setStartValue(QPointF(50,50));
-    animation->setEndValue(QPointF(200,200));
-    animation->setDuration(1000);
-    animation->start();
+    //hide elements
+    ui->label_15->hide();
+    ui->label_14->hide();
+
+    ui->spinBoxST_ProjectileMass->hide();
+    ui->spinBoxST_ProjectileCaliber->hide();
 
     //tray action, quit from programm
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
             this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
 
 
-    // Регистрируем HotKey "SHIFT + E" OnTopMode
-    RegisterHotKey((HWND)MainWindow::winId(),           // Устанавливаем системный идентификатор окна виджета, который будет обрабатывать HotKey
-                   101,                                 // Устанавливаем идентификатор HotKey
-                   MOD_ALT,                           // Устанавливаем модификаторы
+    // Регистрируем HotKey "ALT + E" OnTopMode
+    RegisterHotKey((HWND)MainWindow::winId(),               // Устанавливаем системный идентификатор окна виджета, который будет обрабатывать HotKey
+                   101,                                     // Устанавливаем идентификатор HotKey
+                   MOD_ALT,                                 // Устанавливаем модификаторы
                    'E');
 
-    // Регистрируем HotKey "SHIFT + R" Hide settings
-    RegisterHotKey((HWND)MainWindow::winId(),           // Устанавливаем системный идентификатор окна виджета, который будет обрабатывать HotKey
-                   102,                                 // Устанавливаем идентификатор HotKey
-                   MOD_ALT,                           // Устанавливаем модификаторы
+    // Регистрируем HotKey "ALT + R" Hide settings
+    RegisterHotKey((HWND)MainWindow::winId(),               // Устанавливаем системный идентификатор окна виджета, который будет обрабатывать HotKey
+                   102,                                     // Устанавливаем идентификатор HotKey
+                   MOD_ALT,                                 // Устанавливаем модификаторы
                    'R');
 
 
@@ -236,72 +206,105 @@ void MainWindow::mainHandler(int id)
     //delete poins and clear screen
     case 0:
 
-        p1 = QPoint(0,0);
-        p2 = QPoint(0,0);
-        repaint();
-        qDebug() << "Cleared";
+        Point1 = QPoint(0,0);
+        Point2 = QPoint(0,0);
+        PointProjectileDraw2 = QPoint(0,0);
 
+        ui->labelCL_Point1->setText("(" + QString::number(Point1.x) + ";" + QString::number(Point1.y) + ")");
+        ui->labelCL_Point2->setText("(" + QString::number(Point2.x) + ";" + QString::number(Point2.y) + ")");
+
+        calculateDistance();
+        calculateProjectile();
+
+        repaint();
         break;
 
         //delete poins and clear screen
     case 1:
 
-        ps1 = QPoint(0,0);
-        ps2 = QPoint(0,0);
+        PointScale1 = QPoint(0,0);
+        PointScale2 = QPoint(0,0);
         repaint();
-        qDebug() << "Cleared";
-
         break;
 
-        //Set P1 P2 and display
+        //Set Point1 Point2 and display
     case 2:
 
-        p1 = QCursor::pos(screen0);
-        ui->labelCL_P1->setText("(" + QString::number(p1.x) + ";" + QString::number(p1.y) + ")");
+        //clear point and reset all if was double click on last point
+        if(Point1.x ==  QCursor::pos(screen0).x() && Point1.y ==  QCursor::pos(screen0).y()){
+            Point1 = QPoint(0,0);
+            Point2 = QPoint(0,0);
+            repaint();
 
-        if(p2.x == 0 && p2.y == 0)
-            p2 = QCursor::pos(screen0);
+            ui->labelCL_Point1->setText("(" + QString::number(Point1.x) + ";" + QString::number(Point1.y) + ")");
+            ui->labelCL_Point2->setText("(" + QString::number(Point2.x) + ";" + QString::number(Point2.y) + ")");
+
+            ProjectileSpeed = ui->spinBoxST_StartSpeed->value();
+            calculateDistance();
+            calculateProjectile();
+            break;
+        }
 
 
-        ui->labelCL_P2->setText("(" + QString::number(p2.x) + ";" + QString::number(p2.y) + ")");
+        Point1 = QCursor::pos(screen0);
+        ui->labelCL_Point1->setText("(" + QString::number(Point1.x) + ";" + QString::number(Point1.y) + ")");
 
-        Vspeed = ui->spinBoxST_StartSpeed->value();
+        if(Point2.x == 0 && Point2.y == 0)
+            Point2 = QCursor::pos(screen0);
+        Point1 = QCursor::pos(screen0);
+        ui->labelCL_Point1->setText("(" + QString::number(Point1.x) + ";" + QString::number(Point1.y) + ")");
+
+        if(Point2.x == 0 && Point2.y == 0)
+            Point2 = QCursor::pos(screen0);
+
+        ui->labelCL_Point2->setText("(" + QString::number(Point2.x) + ";" + QString::number(Point2.y) + ")");
+
+
+        ProjectileSpeed = ui->spinBoxST_StartSpeed->value();
         calculateDistance();
         calculateProjectile();
 
         repaint();
-        qDebug() << "Point set";
 
         break;
 
-        //Set PS1 PS2 and display
+        //Set PointScale1 PointScale2 and display
     case 3:
 
-        ps1 = QCursor::pos(screen0);
-        ui->labelCL_P1->setText("(" + QString::number(p1.x) + ";" + QString::number(p1.y) + ")");
+        //clear point and reset all if was double click on last point
+        if(PointScale1.x ==  QCursor::pos(screen0).x() && PointScale1.y ==  QCursor::pos(screen0).y()){
+            PointScale1 = QPoint(0,0);
+            PointScale2 = QPoint(0,0);
 
-        if(ps2.x == 0 && ps2.y == 0)
-            ps2 = QCursor::pos(screen0);
+            repaint();
+            calculateScale();
+
+            break;
+
+        }
+
+        PointScale1 = QCursor::pos(screen0);
+
+        if(PointScale2.x == 0 && PointScale2.y == 0)
+            PointScale2 = QCursor::pos(screen0);
 
         calculateScale();
 
         repaint();
-        qDebug() << "Point set";
 
         break;
 
-        //Set PS1 PS2 and display
+        //Set PointScale1 PointScale2 and display
     case 4:
 
-        pv1 = QCursor::pos(screen0);
+        PointVerticalGrid1 = QCursor::pos(screen0);
 
         if(ui->checkBoxST_VerticalShoot->isChecked())
-            pv2 = QPoint(pv1.x - 200 * cos(OangleVertDeg), pv1.y - 200 * sin(OangleVertDeg));
+            PointVerticalGrid2 = QPoint(PointVerticalGrid1.x - 200 * cos(GunDepressionAngleVertDeg), PointVerticalGrid1.y - 200 * sin(GunDepressionAngleVertDeg));
         else
-            pv2 = QPoint(pv1.x - 200 * cos(Oangle), pv1.y - 200 * sin(Oangle));
+            PointVerticalGrid2 = QPoint(PointVerticalGrid1.x - 200 * cos(GunDepressionAngle), PointVerticalGrid1.y - 200 * sin(GunDepressionAngle));
 
         repaint();
-        qDebug() << "Point set";
 
         break;
 
@@ -316,8 +319,8 @@ void MainWindow::calculateScale()
     //get ammout of pixels from right click
     Point RightClick;
 
-    RightClick.x = abs(ps2.x - ps1.x);
-    RightClick.y = abs(ps2.y - ps1.y);
+    RightClick.x = abs(PointScale2.x - PointScale1.x);
+    RightClick.y = abs(PointScale2.y - PointScale1.y);
 
     //because grid has squere shape, get rid of some angle if user dont draw staight line
     if(RightClick.x <= RightClick.y){
@@ -337,21 +340,22 @@ void MainWindow::calculateDistance()
     static const double TWOPI = 6.2831853071795865;
     static const double RAD2DEG = 57.2957795130823209;
 
-    Point LeftClick = p2 - p1;
+
+    Point LeftClick = Point2 - Point1;
 
     double PixelDist = sqrt(LeftClick.x * LeftClick.x + LeftClick.y * LeftClick.y);
     double MeterDistance = PixelDist * scale;
-    Ddistance = MeterDistance;
+    DistanceBetwenPoints = MeterDistance;
 
 
-    double theta = atan2(p1.x - p2.x, p2.y - p1.y);
-    if (theta < 0.0)
-        theta += TWOPI;
-    double azimut = RAD2DEG * theta;
+    AzimutRad = atan2(Point1.x - Point2.x, Point2.y - Point1.y);
+    if (AzimutRad < 0.0)
+        AzimutRad += TWOPI;
+    AzimutDeg = RAD2DEG * AzimutRad;
 
 
     ui->labelCL_Distance->setText(QString::number(MeterDistance,  'f', 2) + " m");
-    ui->labelCL_Azimut->setText(QString::number(azimut,  'f', 2) + " °");
+    ui->labelCL_Azimut->setText(QString::number(AzimutDeg,  'f', 2) + " °");
 
 }
 
@@ -361,32 +365,129 @@ void MainWindow::calculateProjectile()
     static const double g = 9.81;
     static const double RAD2DEG = 57.2957795130823209;
     const double pi = 3.14159;
-    if(ui->checkBoxST_VerticalShoot->isChecked()){
 
-        Oangle = asin((Ddistance * g) / (Vspeed * Vspeed))/2;
+    const double Diameter = ui->spinBoxST_ProjectileCaliber->value()/1000.0;
+    const double dt = 0.1;
+    const double Projectile_mass = ui->spinBoxST_ProjectileMass->value();
 
-        Tfly = (2 * Vspeed * cos(Oangle))/g;
+    const double k = 0.01; // air resistance coefficient
+    const double rho = 1.2; // air density
+    const double Cd = 0.47; // drag coefficient
+    const double A = pi * (Diameter/2) * (Diameter/2); // cross-sectional area of projectile
 
-        OangleVertDeg = pi/2 - Oangle;
+    if(ui->checkBoxST_ComplexCalculations->isChecked()){
 
-        ui->labelCL_Time->setText(QString::number(Tfly, 'f', 2) + " s");
-        ui->labelCL_Angle->setText(QString::number((90 - (sin(Oangle) * RAD2DEG)), 'f', 2) + " °");
+        GunDepressionAngle = asin((DistanceBetwenPoints * g) / (ProjectileSpeed * ProjectileSpeed))/2;
+
+        double x = 0; // horizontal distance
+        double y = 0; // vertical distance
+        double t = 0; // time
+
+        double v_x = ProjectileSpeed * cos(GunDepressionAngle);
+        double v_y = ProjectileSpeed * sin(GunDepressionAngle);
+
+        double v = sqrt(v_x * v_x + v_y * v_y);
+        double Fx = -0.5 * rho * v * v * Cd * A * v_x / v;
+        double Fy = -0.5 * rho * v * v * Cd * A * v_y / v;
+
+        double ax = Fx / Projectile_mass;
+        double ay = -g + Fy / Projectile_mass;
+
+        while (x <= DistanceBetwenPoints && y >= 0 ) {
+
+            v = sqrt(v_x * v_x + v_y * v_y);
+            Fx = -0.5 * rho * v * v * Cd * A * v_x / v;
+            Fy = -0.5 * rho * v * v * Cd * A * v_y / v;
+            ax = Fx / Projectile_mass;
+            ay = -g + Fy / Projectile_mass;
+            x += v_x * dt;
+            y += v_y * dt;
+            v_x += ax * dt;
+            v_y += ay * dt;
+            t += dt;
+
+            if(t > 300)
+                break;
+
+        }
+
+        ui->labelCL_Time->setText(QString::number(t, 'f', 2) + " s");
+        ui->labelCL_Angle->setText(QString::number(sin(GunDepressionAngle) * RAD2DEG, 'f', 2) + " °");
 
     }
     else{
 
-        Oangle = asin((Ddistance * g) / (Vspeed * Vspeed))/2;
+        if(ui->checkBoxST_VerticalShoot->isChecked()){
 
-        Tfly = (2 * Vspeed * sin(Oangle))/g;
+            GunDepressionAngle = asin((DistanceBetwenPoints * g) / (ProjectileSpeed * ProjectileSpeed))/2;
 
-        ui->labelCL_Time->setText(QString::number(Tfly, 'f', 2) + " s");
-        ui->labelCL_Angle->setText(QString::number(sin(Oangle) * RAD2DEG, 'f', 2) + " °");
+            ProjectileTimeOfFly = (2 * ProjectileSpeed * cos(GunDepressionAngle))/g;
+
+            GunDepressionAngleVertDeg = pi/2 - GunDepressionAngle;
+
+            ui->labelCL_Time->setText(QString::number(ProjectileTimeOfFly, 'f', 2) + " s");
+            ui->labelCL_Angle->setText(QString::number((90 - (sin(GunDepressionAngle) * RAD2DEG)), 'f', 2) + " °");
+
+        }
+        else{
+
+            GunDepressionAngle = asin((DistanceBetwenPoints * g) / (ProjectileSpeed * ProjectileSpeed))/2;
+
+            ProjectileTimeOfFly = (2 * ProjectileSpeed * sin(GunDepressionAngle))/g;
+
+            ui->labelCL_Time->setText(QString::number(ProjectileTimeOfFly, 'f', 2) + " s");
+            ui->labelCL_Angle->setText(QString::number(sin(GunDepressionAngle) * RAD2DEG, 'f', 2) + " °");
+        }
+
     }
 
+}
+
+void MainWindow::drawTrajectory()
+{
+
+    static double t;
+    double dt = ANIM_TIMEOUT/1000.0;            //Refresh rate, good acuracy of mooving point when ANIM_TIMEOUT = 1000, bad when ANIM_TIMEOUT = 1
+    const double N = ProjectileTimeOfFly / dt; // Total number of steps
+
+    Point CalcPoint = Point2 - Point1;
+
+    double PixelDist = sqrt(CalcPoint.x * CalcPoint.x + CalcPoint.y * CalcPoint.y);
+    double step = PixelDist / N;
+
+    static double distance = 0;
+
+    if(t <= 0){
+
+        animationTimer->start();
+        distance = 0;
+        PointProjectileDraw2 = Point2; // position of shell x
+
+    }
+
+    //Calculate the new x and y coordinates based on the current position and the angle
+    double newX = PointProjectileDraw2.x + step * cos(AzimutRad - 1.57079633);
+    double newY = PointProjectileDraw2.y + step * sin(AzimutRad - 1.57079633);
+
+    //Update the position of the circle
+    PointProjectileDraw2 = QPoint(newX, newY);
+
+    distance += step;
+    t += dt;
+    ui->labelCL_Time->setText(QString::number(ProjectileTimeOfFly - t, 'f', 2) + " s");
+
+    if(t > ProjectileTimeOfFly){
+        animationTimer->stop();
+        t = 0;
+        PointProjectileDraw2 = QPoint(0,0);
+        distance = 0;
+        ui->labelCL_Time->setText(QString::number(ProjectileTimeOfFly, 'f', 2) + " s");
+    }
+
+    repaint();
 
 
-    qDebug() << Oangle;
-    qDebug() << Tfly;
+
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -412,20 +513,20 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
     QPainterPath pathP, pathPS, pathPV;
 
-    //pathP.addText(p1.x,p1.y, QFont("Times", 14), QString::number(Ddistance) + "\n" + QString::number(Tfly));
+    //pathP.addText(Point1.x,Point1.y, QFont("Times", 14), QString::number(DistanceBetwenPoints) + "\n" + QString::number(ProjectileTimeOfFly));
 
-    pathP.moveTo(p2.x, p2.y);
-    pathP.lineTo(p1.x, p1.y);
+    pathP.moveTo(Point2.x, Point2.y);
+    pathP.lineTo(Point1.x, Point1.y);
 
-    pathPS.moveTo(ps2.x, ps2.y);
-    pathPS.lineTo(ps1.x, ps1.y);
+    pathPS.moveTo(PointScale2.x, PointScale2.y);
+    pathPS.lineTo(PointScale1.x, PointScale1.y);
 
-    pathPV.moveTo(pv1.x, pv1.y);
-    pathPV.lineTo(pv1.x - 200, pv1.y);
-    pathPV.moveTo(pv1.x, pv1.y);
-    pathPV.lineTo(pv1.x, pv1.y - 200);
-    pathPV.moveTo(pv1.x, pv1.y);
-    pathPV.lineTo(pv2.x, pv2.y);
+    pathPV.moveTo(PointVerticalGrid1.x, PointVerticalGrid1.y);
+    pathPV.lineTo(PointVerticalGrid1.x - 200, PointVerticalGrid1.y);
+    pathPV.moveTo(PointVerticalGrid1.x, PointVerticalGrid1.y);
+    pathPV.lineTo(PointVerticalGrid1.x, PointVerticalGrid1.y - 200);
+    pathPV.moveTo(PointVerticalGrid1.x, PointVerticalGrid1.y);
+    pathPV.lineTo(PointVerticalGrid2.x, PointVerticalGrid2.y);
 
     //QPen pen(Qt::red, 2, Qt::DashDotLine, Qt::RoundCap, Qt::RoundJoin);
     QPen pen(Qt::red, 2, Qt::DashDotLine, Qt::RoundCap);
@@ -435,6 +536,10 @@ void MainWindow::paintEvent(QPaintEvent *event)
     pen.setColor(Qt::green);
     painter.setPen(pen);
     painter.drawPath(pathPS);
+
+    pen.setStyle(Qt::SolidLine);
+    painter.setPen(pen);
+    painter.drawEllipse(PointProjectileDraw2.x, PointProjectileDraw2.y, 5, 5);
 
     painter.drawPath(pathPV);
 }
@@ -465,11 +570,20 @@ bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, long *r
         }
 
         if(msg->wParam == 102){
+
             // Hide settings
             if(ui->frameSettings->isHidden()){
+                setWindowFlag(Qt::WindowTransparentForInput,false);
+                this->show();
                 ui->frameSettings->show();
+
             }
             else{
+
+                //Open application with full screen and transparent background
+
+                setWindowFlag(Qt::WindowTransparentForInput, true);
+                this->show();
                 ui->frameSettings->hide();
             }
             return true;
@@ -495,4 +609,23 @@ void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
+
+
+void MainWindow::on_checkBoxST_ComplexCalculations_clicked()
+{
+    if(ui->checkBoxST_ComplexCalculations->isChecked()){
+        ui->label_15->show();
+        ui->label_14->show();
+
+        ui->spinBoxST_ProjectileMass->show();
+        ui->spinBoxST_ProjectileCaliber->show();
+    }
+    else{
+        ui->label_15->hide();
+        ui->label_14->hide();
+
+        ui->spinBoxST_ProjectileMass->hide();
+        ui->spinBoxST_ProjectileCaliber->hide();
+    }
+}
 
