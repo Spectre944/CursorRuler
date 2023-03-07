@@ -1,6 +1,5 @@
 /*QWidget*/ 
 QWidget { color: white; font-size: 20pt; } 
-#labelCL_Azimut, #labelCL_Distance, #labelCL_Time, #labelCL_Scale, #labelCL_P1, #labelCL_P2, #labelCL_Angle { color: red; font-size: 20pt;}
+#labelCL_Azimut, #labelCL_Distance, #labelCL_Time, #labelCL_Scale, #labelCL_Point1, #labelCL_Point2, #labelCL_Angle { color: red; font-size: 20pt;}
 
-#doubleSpinBoxST_MapScale { color: black; font-size: 20px;}
-#spinBoxST_StartSpeed { color: black; font-size: 20px;}
+#doubleSpinBoxST_MapScale, #spinBoxST_StartSpeed, #spinBoxST_ProjectileMass, #spinBoxST_ProjectileCaliber  { color: black; font-size: 20px;}

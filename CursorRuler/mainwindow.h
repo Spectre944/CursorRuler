@@ -23,6 +23,8 @@
 #include "windows.h" // Подключаем библиотеку WinAPI
 #pragma comment(lib, "user32.lib")
 
+#define ANIM_TIMEOUT 100 //Refresh rate of projectile draw
+
 struct Point {
     int x = 0;
     int y = 0;
@@ -73,13 +75,19 @@ public:
     void calculateProjectile();
     void drawTrajectory();
 
-    // p1, p2 - click points for distance
-    // and ps1, ps2 - points for scale
-    // pv1, pv2 point for transportier (vertical shooting)
-    // pd1, pd2 drawing point of projectile
-    Point p1, p2, ps1, ps2, pv1, pv2, pd1, pd2;
-    double scale = 0;
-    double Vspeed, Oangle, OangleVertDeg, Ddistance, Tfly;
+    Point   Point1, Point2,                                 // Point1, Point2 - click points for distance
+            PointScale1, PointScale2,                       // and PointScale1, PointScale2 - points for scale
+            PointVerticalGrid1, PointVerticalGrid2,         // PointVerticalGrid1, PointVerticalGrid2 point for transportier (vertical shooting)
+            PointProjectileDraw1, PointProjectileDraw2;     // PointProjectileDraw1, PointProjectileDraw2 drawing point of projectile
+
+    double  scale = 0;
+    double  ProjectileSpeed,
+            GunDepressionAngle,
+            GunDepressionAngleVertDeg,
+            DistanceBetwenPoints,
+            ProjectileTimeOfFly,
+            AzimutDeg,
+            AzimutRad;
 
     bool onTop = true;
     bool onTransperentMouse = false;
